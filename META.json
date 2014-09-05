@@ -1,12 +1,12 @@
 {
     "name": "Labyrinth-Plugin-Survey",
-    "version": "0.03",
+    "version": "0.04",
     "abstract": "YAPC Surveys plugin for the Labyrinth framework",
     "author": [
         "Barbie (BARBIE) <barbie@cpan.org>"
     ],
 
-    "license": "artistic_2",
+    "license": [ "artistic_2" ],
     "dynamic_config" : 0,
     "release_status" : "stable",
     "meta-spec": {
@@ -58,27 +58,27 @@
     "provides": {
         "Labyrinth::Plugin::Survey": {
             "file": "lib/Labyrinth/Plugin/Survey.pm",
-            "version": "0.03"
+            "version": "0.04"
         },
         "Labyrinth::Plugin::Survey::Act::API": {
             "file": "lib/Labyrinth/Plugin/Survey/Act/API.pm",
-            "version": "0.03"
+            "version": "0.04"
         },
         "Labyrinth::Plugin::Survey::Announce": {
             "file": "lib/Labyrinth/Plugin/Survey/Announce.pm",
-            "version": "0.03"
+            "version": "0.04"
         },
         "Labyrinth::Plugin::Survey::Course": {
             "file": "lib/Labyrinth/Plugin/Survey/Course.pm",
-            "version": "0.03"
+            "version": "0.04"
         },
         "Labyrinth::Plugin::Survey::Talk": {
             "file": "lib/Labyrinth/Plugin/Survey/Talk.pm",
-            "version": "0.03"
+            "version": "0.04"
         },
         "Labyrinth::Plugin::Survey::YAPC": {
             "file": "lib/Labyrinth/Plugin/Survey/YAPC.pm",
-            "version": "0.03"
+            "version": "0.04"
         }
     },
     "no_index": {
@@ -86,7 +86,7 @@
     },
 
     "resources": {
-        "license": "http://www.perlfoundation.org/artistic_license_2_0",
+        "license": [ "http://www.perlfoundation.org/artistic_license_2_0" ],
         "bugtracker": { "web": "http://rt.cpan.org/Public/Dist/Display.html?Name=Labyrinth-Plugin-Survey" },
         "repository": {
             "url": "git://github.com/barbie/labyrinth-plugin-survey.git",
