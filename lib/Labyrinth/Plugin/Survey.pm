@@ -4,7 +4,7 @@ use warnings;
 use strict;
 
 use vars qw($VERSION);
-$VERSION = '0.04';
+$VERSION = '0.05';
 
 =head1 NAME
 
@@ -313,8 +313,8 @@ sub Welcome {
 sub CheckOpenTimes {
     for my $dt (qw(survey_start course_start talks_start survey_end)) {
         #LogDebug("CheckOpenTimes: $dt=$tvars{$dt}");
-        if($tvars{$dt} && $tvars{$dt} =~ /(\d{2})\W(\d{2})\W(\d{4})\W(\d{2})\W(\d{2})\W(\d{2})/) {
-            my $t = timelocal(int($6),int($5),int($4),int($1),int($2-1),int($3-1900));
+        if($tvars{$dt} && $tvars{$dt} =~ /(\d{4})\W(\d{2})\W(\d{2})\W(\d{2})\W(\d{2})\W(\d{2})/) {
+            my $t = timelocal(int($6),int($5),int($4),int($3),int($2-1),int($1-1900));
             my $n = time + $settings{timezone_offset};
 
         LogDebug("CheckOpenTimes: dt=$dt, $tvars{$dt}, t=$t, n=$n");
@@ -340,7 +340,7 @@ Loads the data when presenting the survey management pages.
 
 sub Admin {
     return  unless AccessUser(ADMIN);
-    my @surveys = $dbi->GetQuery('hash','AdminSurveys',{'sort' => 'ORDER BY completed'});
+    my @surveys = $dbi->GetQuery('hash','AdminSurveys',{'sort' => 'ORDER BY u.realname'});
     my @courses = $dbi->GetQuery('hash','AdminCourses');
     my @talks   = $dbi->GetQuery('hash','AdminTalks');
 
