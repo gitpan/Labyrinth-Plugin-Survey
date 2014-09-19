@@ -54,7 +54,7 @@ my %LABEL = (
 );
 
 my $TARGET = './results';
-my (@users,%options);
+my (@users,%options,%filter);
 
 $Text::Wrap::columns = 72;
 
@@ -102,7 +102,15 @@ results_talks();
 # The Subs
 
 sub init {
-    GetOptions(\%options, 'tutor=s', 'email=s', 'live', 'test', 'moderator=s');
+    GetOptions(\%options,
+        'tutor=s',
+        'email=s',
+        'live',
+        'test',
+        'courses',
+        'talks',
+        'lightning',
+        'moderator=s');
 
     MailSet(mailsend => $settings{mailsend}, logdir => $settings{logdir});
     $tvars{survey} = $plugin->LoadSurvey($settings{'evaluate'});
@@ -116,6 +124,10 @@ sub init {
     $options{test} = 1  if($options{moderator});
     $options{moderator} ||= $settings{moderator};
     $options{moderator} ||= $MODERATOR;
+
+    $filter{ 0 } = 1 if($options{courses});
+    $filter{ 1 } = 1 if($options{talks});
+    $filter{ 2 } = 1 if($options{lightning});
 }
 
 sub process {
@@ -129,6 +141,9 @@ sub process {
         #print STDERR "tutor=$course->{tutor}, course=[$course->{courseid}] $course->{course}\n";
         next    if($options{tutor} && $course->{tutor} ne $options{tutor});
 
+        # are we allowing this talk type?
+        next    if(%filter && !$filter{ $course->{talk} });
+
         $course->{tutor} = 'Moderator'  if($options{test});
 
         unless($course->{tutor}) {
@@ -137,7 +152,7 @@ sub process {
         }
 
         $course->{tutor} =~ s/[- \.]+$//;
-        my $email = _find_user($course->{tutor});
+        my $email = _find_user($course->{actuserid},$course->{tutor});
         unless($email) {
             print STDERR "ENOMAIL: $course->{course}\n";
             print STDERR "         tutor=[$course->{tutor}]\n";
@@ -215,32 +230,29 @@ sub process {
 
 
 sub _find_user {
-    my ($name,$nick) = @_;
-    my ($e1,$e2,$e3,$e4);
+    my ($userid,$name) = @_;
+    my $id;
 
-    return $options{moderator}  if($course->{tutor} eq 'Moderator');
+    #return $options{moderator}  if($course->{tutor} eq 'Moderator');
     return $options{email}      if($options{tutor} && $options{email});
 
     for my $user (@users) {
-        if(defined $user->{realname} && defined $name) {
+        if(defined $user->{actuserid} && defined $userid) {
+            $id ||= $user->{email}  if($user->{actuserid} == $userid);
+
+        } elsif(defined $user->{realname} && defined $name) {
             return $user->{email}   if($user->{realname} eq $name);
-            $e1 ||= $user->{email}  if($user->{realname} =~ /$name/);
-        }
+            $id ||= $user->{email}  if($user->{realname} =~ /$name/);
 
-        if(defined $user->{nickname} && defined $name) {
+        } elsif(defined $user->{nickname} && defined $name) {
             return $user->{email}   if($user->{nickname} eq $name);
-            $e2 ||= $user->{email}  if($user->{nickname} =~ /$name/);
+            $id ||= $user->{email}  if($user->{nickname} =~ /$name/);
         }
 
-        if(defined $user->{realname} && defined $nick) {
-            $e3 ||= $user->{email}  if($user->{realname} =~ /$nick/);
-        }
-        if(defined $user->{nickname} && defined $nick) {
-            $e4 ||= $user->{email}  if($user->{nickname} =~ /$nick/);
-        }
+        return $id if($id);
     }
 
-    return $e1 || $e2 || $e3 || $e4;
+    return;
 }
 
 

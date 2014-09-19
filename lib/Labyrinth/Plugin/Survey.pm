@@ -4,7 +4,7 @@ use warnings;
 use strict;
 
 use vars qw($VERSION);
-$VERSION = '0.05';
+$VERSION = '0.06';
 
 =head1 NAME
 
@@ -308,6 +308,7 @@ sub Welcome {
     my @talks = map {$talks{$_}} sort keys %talks;
     $tvars{data}{talks} = \@talks   if(@talks);
     $tvars{talks_time} = time;
+    $tvars{thanks} = $cgiparams{thanks};
 }
 
 sub CheckOpenTimes {
