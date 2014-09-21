@@ -1,6 +1,13 @@
 Changes for Labyrinth-Plugin-Survey
 ===================================
 
+0.07	2014-09-21
+        - provide SQL to disable Talks and Users.
+        - ignore disabled users when sending announcements.
+        - added initial Survey API module.
+        - added Survey API request and template files.
+        - refined Act API calls and templates.
+
 0.06	2014-09-19
         - list of courses/talks should not be based on room allocation.
         - added filters to only send feedback for specific talk types.

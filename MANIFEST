@@ -3,6 +3,7 @@ INSTALL
 lib/Labyrinth/Plugin/Survey.pm
 lib/Labyrinth/Plugin/Survey/Act/API.pm
 lib/Labyrinth/Plugin/Survey/Announce.pm
+lib/Labyrinth/Plugin/Survey/API.pm
 lib/Labyrinth/Plugin/Survey/Course.pm
 lib/Labyrinth/Plugin/Survey/Talk.pm
 lib/Labyrinth/Plugin/Survey/YAPC.pm
@@ -26,6 +27,7 @@ vhost/cgi-bin/config/parserules.ini
 vhost/cgi-bin/config/phrasebook.ini
 vhost/cgi-bin/config/requests/admin.ini
 vhost/cgi-bin/config/requests/anno.ini
+vhost/cgi-bin/config/requests/api.ini
 vhost/cgi-bin/config/requests/course.ini
 vhost/cgi-bin/config/requests/error.ini
 vhost/cgi-bin/config/requests/home.ini
@@ -71,13 +73,17 @@ vhost/cgi-bin/templates/survey/results-survey.txt
 vhost/cgi-bin/templates/survey/results-tutorials.eml
 vhost/cgi-bin/templates/survey/survey-adminlist.html
 vhost/cgi-bin/templates/survey/survey-bad.html
+vhost/cgi-bin/templates/survey/survey-disable.json
 vhost/cgi-bin/templates/survey/survey-fail.html
+vhost/cgi-bin/templates/survey/survey-link.json
 vhost/cgi-bin/templates/survey/survey.html
 vhost/cgi-bin/templates/survey/survey-thanks.html
+vhost/cgi-bin/templates/survey/talks-act.html
 vhost/cgi-bin/templates/survey/talks-adminedit.html
 vhost/cgi-bin/templates/survey/talks-adminlist.html
 vhost/cgi-bin/templates/survey/welcome.html
 vhost/cgi-bin/templates/users/user-access.html
+vhost/cgi-bin/templates/users/user-act.html
 vhost/cgi-bin/templates/users/user-adminedit.html
 vhost/cgi-bin/templates/users/user-adminlist.html
 vhost/cgi-bin/templates/users/user-chng.html

@@ -5,7 +5,7 @@ use strict;
 use utf8;
 
 use vars qw($VERSION);
-$VERSION = '0.06';
+$VERSION = '0.07';
 
 =head1 NAME
 
@@ -104,16 +104,33 @@ sub LoadUsers {
         @rows = $dbi->GetQuery('hash','FindUser',$user->{email})        unless(@rows);
 
         if(@rows) {
+            $tvars{counts}{all}++;
+            next    unless($rows[0]->{search}); # ignore disabled users
+            $tvars{counts}{enabled}++;
+    
             if(!$rows[0]->{actuserid} || $rows[0]->{actuserid} == 0) {
                 $dbi->DoQuery('UpdateActUser',$user->{user_id},$rows[0]->{userid});
             }
 
             if($rows[0]->{userid} > 2) {
-                my @keys = $dbi->GetQuery('hash','GetUserCode',$rows[0]->{userid});
-                $dbi->DoQuery('ConfirmUser',1,$rows[0]->{userid});
-                #print "FOUND: $name <$user->{email}> => $keys[0]->{code}/$rows[0]->{userid}/$user->{userid}\n";
                 $tvars{counts}{found}++;
+
+                # could have signed up, then been registered
+                unless($rows[0]->{code}) {
+                    my $str = $$ . $user->{email} . time();
+                    $rows[0]->{code} = sha1_hex($crypt->encrypt($str, $key));
+                    $dbi->DoQuery('SaveUserCode',$rows[0]->{code},$rows[0]->{userid});
+                    push @saved, { status => 'REGISTERED', name => $name, email => $user->{email}, link => "$rows[0]->{code}/$rows[0]->{userid}" };
+                    $tvars{counts}{registered}++;
+                }
+
+                next    if($rows[0]->{confirmed});  # already confirmed
+                $tvars{counts}{confirmed}++;
+
+                $dbi->DoQuery('ConfirmUser',1,$rows[0]->{userid});
+                push @saved, { status => 'CONFIRMED', name => $name, email => $user->{email}, link => "$rows[0]->{code}/$rows[0]->{userid}" };
             }
+
             next;
         }
 
@@ -125,7 +142,7 @@ sub LoadUsers {
         $dbi->DoQuery('ConfirmUser',1,$userid);
         $dbi->DoQuery('SaveUserCode',$code,$userid);
 
-        push @saved, "$name <$user->{email}> => $code/$userid/$user->{user_id}";
+        push @saved, { status => 'SAVED', name => $name, email => $user->{email}, link => "$code/$userid" };
         $tvars{counts}{saved}++
     }
 
@@ -136,7 +153,7 @@ sub LoadUsers {
 }
 
 sub LoadTalks {
-    my (@ignore,@insert,@update);
+    my (@talks);
     my $yapc = $settings{icode};
     $tvars{counts}{$_} = 0  for(qw(insert update ignore found totals));
 
@@ -171,7 +188,7 @@ sub LoadTalks {
         my $type = _check_room($talk->{room}, $talk->{datetime});
 
         my @rows;
-        @rows = $dbi->GetQuery('hash','FindCourseByAct',$talk->{talk_id})    if($talk->{talk_id});
+        @rows = $dbi->GetQuery('hash','FindCourseByAct',$talk->{talk_id})   if($talk->{talk_id});
         @rows = $dbi->GetQuery('hash','FindCourse',$title,$tutor)           unless(@rows);
 
         if(@rows) {
@@ -180,7 +197,7 @@ sub LoadTalks {
             }
 
             if($rows[0]->{talk} == -1) { # ignore this talk
-                push @ignore, "$rows[0]->{courseid},$title,$tutor,$talk->{room},$talk->{datetime} = $type";
+                push @talks, { status => 'IGNORE', courseid => $rows[0]->{courseid}, title => $title, tutor => $tutor, room => $talk->{room}, datetime => formatDate(21,$talk->{datetime}), timestamp => $talk->{datetime}, type => $type };
                 $tvars{counts}{ignore}++;
                 next;
             }
@@ -199,21 +216,21 @@ sub LoadTalks {
 
             if($diff) {
                 $dbi->DoQuery('SaveCourse',$title,$tutor,$talk->{room},$talk->{datetime},$type,$rows[0]->{courseid});
-                push @update, "$rows[0]->{courseid},$title,$tutor,$talk->{room},$talk->{datetime} = $type";
-                push @update, "WAS=$rows[0]->{courseid},$rows[0]->{course},$rows[0]->{tutor},$rows[0]->{room},$rows[0]->{datetime} = $rows[0]->{talk}";
-                push @update, "NOW=$rows[0]->{courseid},$title,$tutor,$talk->{room},$talk->{datetime} = $type";
+                push @talks, { status => 'UPDATE', courseid => $rows[0]->{courseid}, title => $title, tutor => $tutor, room => $talk->{room}, datetime => formatDate(21,$talk->{datetime}), timestamp => $talk->{datetime}, type => $type };
+                push @talks, { status => 'WAS', courseid => $rows[0]->{courseid}, title => $rows[0]->{course}, tutor => $rows[0]->{tutor}, room => $rows[0]->{room}, datetime => formatDate(21,$rows[0]->{datetime}), timestamp => $rows[0]->{datetime}, type => $rows[0]->{talk} };
                 $tvars{counts}{update}++;
             } else {
                 $tvars{counts}{found}++;
             }
         } else {
             my $id = $dbi->IDQuery('AddCourse',$title,$tutor,$talk->{room},$talk->{datetime},$type);
-            push @insert, "$id,$title,$tutor,$talk->{room},$talk->{datetime} = $type";
+            push @talks, { status => 'INSERT', courseid => $id, title => $title, tutor => $tutor, room => $talk->{room}, datetime => formatDate(21,$talk->{datetime}), timestamp => $talk->{datetime}, type => $type };
             $tvars{counts}{insert}++;
         }
     }
 
-    $tvars{counts}{totals} += $tvars{counts}{$_}             for(qw(insert update ignore found));
+    $tvars{data}{talks} = \@talks   if(@talks);
+    $tvars{counts}{totals} += $tvars{counts}{$_}    for(qw(insert update ignore found));
 }
 
 #----------------------------------------------------------
