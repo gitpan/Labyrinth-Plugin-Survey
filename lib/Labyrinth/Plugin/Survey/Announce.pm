@@ -4,7 +4,7 @@ use warnings;
 use strict;
 
 use vars qw($VERSION);
-$VERSION = '0.07';
+$VERSION = '0.08';
 
 =head1 NAME
 
@@ -30,6 +30,7 @@ use Labyrinth::Support;
 use Labyrinth::Users;
 use Labyrinth::Variables;
 
+use Encode qw/encode decode/;
 use HTML::Entities;
 use Time::Piece;
 
@@ -331,10 +332,11 @@ sub _send_announcement {
         $user->{realname} = decode_entities($user->{realname} );
 
         my $t = localtime;
-        $opts{edate}            = $t->strftime("%a, %d %b %Y %H:%M:%S +0100");
+        $opts{edate}            = formatDate(16);
         $opts{email}            = $user->{email} or next;
         $opts{recipient_email}  = $user->{email} or next;
         $opts{ename}            = $user->{realname} || '';
+        $opts{mname}            = encode('MIME-Q', decode('MIME-Header', $opts{ename}));
 
         for my $key (qw(from subj body)) {
             $opts{$key} =~ s/ENAME/$user->{realname}/g;
